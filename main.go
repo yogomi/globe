@@ -9,6 +9,7 @@ import (
 
 	"./misc"
 	"./shader"
+	"./idea"
 	"./point"
 )
 
@@ -74,25 +75,21 @@ func main() {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	// Configure the vertex data
-	var vao_hexagon uint32
-	gl.GenVertexArrays(1, &vao_hexagon)
-	gl.BindVertexArray(vao_hexagon)
 
-	var vbo_hexagon uint32
-	gl.GenBuffers(1, &vbo_hexagon)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo_hexagon)
+	var line_vertexes = []mgl32.Vec3 {
+		mgl32.Vec3{1.0, 1.0, 0.0},
+		mgl32.Vec3{1.5, 1.5, 0.0},
+	}
 
-	var hexagon_vertex = point.HexagonVertex()
+	fmt.Println(program)
 
-	gl.BufferData(gl.ARRAY_BUFFER,
-						len(hexagon_vertex) * 4,
-						gl.Ptr(hexagon_vertex),
-						gl.DYNAMIC_DRAW)
+	line := idea.NewIdea()
+	line.Initialize(program)
+	line.BindVertexes(line_vertexes)
 
-	vert_attrib := uint32(gl.GetAttribLocation(program, gl.Str("vert\x00")))
-	gl.EnableVertexAttribArray(vert_attrib)
-	gl.VertexAttribPointer(vert_attrib, 3, gl.FLOAT, false, 0, gl.PtrOffset(0))
+	hexagon := idea.NewIdea()
+	hexagon.Initialize(program)
+	hexagon.BindVertexes(point.HexagonVertex())
 
 	previous_time := glfw.GetTime()
 
@@ -108,10 +105,8 @@ func main() {
 		model = mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
 		gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
-		gl.BindVertexArray(vao_hexagon)
-
-		gl.LineWidth(1.5);
-		gl.DrawArrays(gl.LINE_STRIP, 0, int32(len(hexagon_vertex) / 3))
+		line.Draw()
+		hexagon.Draw()
 
 		// Maintenance
 		window.SwapBuffers()
