@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -21,6 +22,7 @@ var rotate_span float64 = 0.0
 
 func main() {
 	fmt.Println("start")
+	runtime.LockOSThread()
 
 	misc.CheckError(glfw.Init())
 	defer glfw.Terminate()
@@ -84,12 +86,25 @@ func main() {
 	fmt.Println(program)
 
 	line := idea.NewIdea()
-	line.Initialize(program)
-	line.BindVertexes(line_vertexes)
+	line.Initialize(line_vertexes, program)
 
 	hexagon := idea.NewIdea()
-	hexagon.Initialize(program)
-	hexagon.BindVertexes(point.HexagonVertex())
+	hexagon.Initialize(point.HexagonVertex(), program)
+
+	hexagons := idea.NewIdeaGroup()
+	hexagons.AddIdea("center", hexagon)
+
+	h2 := hexagon.Copy()
+	h2.Transport(mgl32.Vec3{1.5, 0.0, 0.0})
+
+	hexagons.AddIdea("left", h2)
+
+	var rotation = []mgl32.Vec3 {
+		mgl32.Vec3{1.0, 1.0, 0.0},
+		mgl32.Vec3{1.0, 1.0, 4.0},
+	}
+
+	fmt.Println(point.RotateAroundVector(rotation[0], rotation[1], 8, line_vertexes))
 
 	previous_time := glfw.GetTime()
 
@@ -100,16 +115,22 @@ func main() {
 		elapsed := now - previous_time
 		previous_time = now
 		angle += elapsed * rotate_span
-		// Render
-		// rotation
-		model = mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
+
+		model = mgl32.HomogRotate3D(0.0, mgl32.Vec3{0, 1, 0})
 		gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
+		line.Rotate(rotation[0], rotation[1], float32(rotate_span / 100))
+
+		hexagons.Rotate(mgl32.Vec3{0.0, 0.0, 0.0},
+				mgl32.Vec3{1.0, 0.0, 0.0},
+				float32(rotate_span / 100))
+
 		line.Draw()
-		hexagon.Draw()
+		hexagons.Draw()
 
 		// Maintenance
 		window.SwapBuffers()
+
 		glfw.PollEvents()
 	}
 

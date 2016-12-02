@@ -4,8 +4,19 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-func RotateAroundVector(v_star mgl32.Vec3, end mgl32.Vec3, vectors []mgl32.Vec3) []mgl32.Vec3 {
-	return vectors
+func RotateAroundVector(start mgl32.Vec3,
+					end mgl32.Vec3,
+					radian float32,
+					vectors []mgl32.Vec3) []mgl32.Vec3 {
+	rotated_vectors := make([]mgl32.Vec3, len(vectors))
+
+	axis := end.Sub(start).Normalize()
+	roter := mgl32.QuatRotate(radian, axis)
+
+	for i, v := range vectors {
+		rotated_vectors[i] = roter.Rotate(v.Sub(start)).Add(start)
+	}
+	return rotated_vectors
 }
 
 func VectorToArrayOfFloat32(array_of_vector []mgl32.Vec3) []float32 {
