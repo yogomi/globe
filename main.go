@@ -12,7 +12,7 @@ import (
 	"./misc"
 	"./shader"
 	"./idea"
-	"./point"
+	"./tortoiseshell"
 )
 
 const window_width = 800
@@ -79,7 +79,7 @@ func main() {
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	hexagon := idea.NewIdea()
-	hexagon.Initialize(point.HexagonVertex(), program)
+	hexagon.Initialize(tortoiseshell.HexagonVertex(), program)
 
 	hexagons := idea.NewIdeaGroup()
 	hexagons.AddIdea("center", hexagon)
