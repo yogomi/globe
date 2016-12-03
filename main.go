@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -55,11 +56,11 @@ func main() {
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0),
 									float32(window_width)/window_height,
 									0.1,
-									10.0)
+									100.0)
 	projectionUniform := gl.GetUniformLocation(program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 
-	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 5}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 10}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 	cameraUniform := gl.GetUniformLocation(program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
 
@@ -77,34 +78,20 @@ func main() {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-
-	var line_vertexes = []mgl32.Vec3 {
-		mgl32.Vec3{1.0, 1.0, 0.0},
-		mgl32.Vec3{1.5, 1.5, 0.0},
-	}
-
-	fmt.Println(program)
-
-	line := idea.NewIdea()
-	line.Initialize(line_vertexes, program)
-
 	hexagon := idea.NewIdea()
 	hexagon.Initialize(point.HexagonVertex(), program)
 
 	hexagons := idea.NewIdeaGroup()
 	hexagons.AddIdea("center", hexagon)
 
-	h2 := hexagon.Copy()
-	h2.Transport(mgl32.Vec3{1.5, 0.0, 0.0})
-
-	hexagons.AddIdea("left", h2)
-
-	var rotation = []mgl32.Vec3 {
-		mgl32.Vec3{1.0, 1.0, 0.0},
-		mgl32.Vec3{1.0, 1.0, 4.0},
+	for i := 0; i < 6; i++ {
+		h := hexagon.Copy()
+		vertexes := hexagon.Vertexes()
+		fmt.Println(i, "    ", len(vertexes))
+		transport_vector := vertexes[i].Add(vertexes[i+1])
+		h.Transport(transport_vector)
+		hexagons.AddIdea("vector" + strconv.Itoa(i), h)
 	}
-
-	fmt.Println(point.RotateAroundVector(rotation[0], rotation[1], 8, line_vertexes))
 
 	previous_time := glfw.GetTime()
 
@@ -119,13 +106,10 @@ func main() {
 		model = mgl32.HomogRotate3D(0.0, mgl32.Vec3{0, 1, 0})
 		gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
-		line.Rotate(rotation[0], rotation[1], float32(rotate_span / 100))
-
 		hexagons.Rotate(mgl32.Vec3{0.0, 0.0, 0.0},
 				mgl32.Vec3{1.0, 0.0, 0.0},
 				float32(rotate_span / 100))
 
-		line.Draw()
 		hexagons.Draw()
 
 		// Maintenance
