@@ -49,7 +49,6 @@ func (idea_itself *idea) Vertexes() []mgl32.Vec3 {
 }
 
 func (idea_itself *idea) Initialize(vertexes []mgl32.Vec3, program uint32) {
-	fmt.Println("initialize idea")
 	idea_itself.program = program
 	idea_itself.vertexes = vertexes
 
@@ -100,6 +99,7 @@ func (idea_itself *idea) Draw() error {
 	gl.BindVertexArray(idea_itself.vao)
 
 	gl.LineWidth(1.5);
+	fmt.Println(idea_itself.vertexes)
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(len(idea_itself.vertexes)))
 	return nil
 }

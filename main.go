@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"runtime"
-	"strconv"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -11,8 +10,7 @@ import (
 
 	"./misc"
 	"./shader"
-	"./idea"
-	"./tortoiseshell"
+	"./hexagonshell"
 )
 
 const window_width = 800
@@ -56,11 +54,11 @@ func main() {
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0),
 									float32(window_width)/window_height,
 									0.1,
-									100.0)
+									1000.0)
 	projectionUniform := gl.GetUniformLocation(program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 
-	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 10}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 20}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 	cameraUniform := gl.GetUniformLocation(program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
 
@@ -78,20 +76,12 @@ func main() {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	hexagon := idea.NewIdea()
-	hexagon.Initialize(tortoiseshell.HexagonVertex(), program)
+	hexagons := hexagonshell.CreateBaseShell(1.0, 0.0, program)
 
-	hexagons := idea.NewIdeaGroup()
-	hexagons.AddIdea("center", hexagon)
+	hexagons.GrowUp()
 
-	for i := 0; i < 6; i++ {
-		h := hexagon.Copy()
-		vertexes := hexagon.Vertexes()
-		fmt.Println(i, "    ", len(vertexes))
-		transport_vector := vertexes[i].Add(vertexes[i+1])
-		h.Transport(transport_vector)
-		hexagons.AddIdea("vector" + strconv.Itoa(i), h)
-	}
+	h2 := hexagons.Copy()
+	h2.Transport(mgl32.Vec3{5.0, 0.0, 0.0})
 
 	previous_time := glfw.GetTime()
 
@@ -111,6 +101,7 @@ func main() {
 				float32(rotate_span / 100))
 
 		hexagons.Draw()
+		h2.Draw()
 
 		// Maintenance
 		window.SwapBuffers()
