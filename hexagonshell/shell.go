@@ -118,6 +118,10 @@ func (shell *hexagonshell) DrawStage(stage uint) error {
 // TODO Rotateに関して
 func (shell *hexagonshell) GrowUp() {
 	fmt.Println("GrowUp start")
+	if shell.stage == 5 {
+		fmt.Println("GrowUp is overwork")
+		return
+	}
 	center_shell := shell.Copy()
 	shell.belonging_shells[0] = center_shell
 	for i, _ := range shell.base_vertexes {

@@ -18,6 +18,9 @@ const window_height = 600
 
 var angle float64 = 0.0
 var rotate_span float64 = 0.0
+var stage uint = 0
+
+var globe_core *hexagonshell.Hexagonshell = nil
 
 func main() {
 	fmt.Println("start")
@@ -58,7 +61,7 @@ func main() {
 	projectionUniform := gl.GetUniformLocation(program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 
-	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 20}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 200}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 	cameraUniform := gl.GetUniformLocation(program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
 
@@ -77,6 +80,7 @@ func main() {
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	hexagons := hexagonshell.CreateBaseShell(1.0, 0.0, program)
+	globe_core = &hexagons
 
 	hexagons.GrowUp()
 
@@ -93,11 +97,11 @@ func main() {
 		model = mgl32.HomogRotate3D(0.0, mgl32.Vec3{0, 1, 0})
 		gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
-		hexagons.Rotate(mgl32.Vec3{0.0, 0.0, 0.0},
-				mgl32.Vec3{1.0, 0.0, 0.0},
-				float32(rotate_span / 100))
+		// hexagons.Rotate(mgl32.Vec3{0.0, 0.0, 0.0},
+		// 		mgl32.Vec3{1.0, 0.0, 0.0},
+		// 		float32(rotate_span / 100))
 
-		hexagons.Draw()
+		hexagons.DrawStage(stage)
 
 		// Maintenance
 		window.SwapBuffers()
@@ -110,9 +114,18 @@ func main() {
 
 func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if key == glfw.KeyUp && action != glfw.Release {
+		(*globe_core).GrowUp()
 	} else if key == glfw.KeyRight && action != glfw.Release {
 		rotate_span += 0.1
 	} else if key == glfw.KeyLeft && action != glfw.Release {
 		rotate_span -= 0.1
+	} else if key == glfw.KeyLeftBracket && action != glfw.Release {
+		if stage != 5 {
+			stage++
+		}
+	} else if key == glfw.KeyRightBracket && action != glfw.Release {
+		if stage != 0 {
+			stage--
+		}
 	}
 }
