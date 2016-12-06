@@ -15,26 +15,23 @@ type Hexagonshell interface {
 	Draw() error
 	DrawStage(stage uint) error
 
-	Tiles() idea.IdeaGroup
 	GrowUp()
 }
 
 type hexagonshell struct {
 	belonging_shells [7]Hexagonshell
-	tiles idea.IdeaGroup
+	tile idea.Idea
 	base_vertexes [6]mgl32.Vec3
 	stage uint
 	angle float32
 }
 
 func CreateBaseShell(size, angle float32, program uint32) Hexagonshell {
-	base_shell := &hexagonshell{[7]Hexagonshell{}, idea.NewIdeaGroup(), [6]mgl32.Vec3{}, 0, 0.0}
+	base_shell := &hexagonshell{[7]Hexagonshell{}, idea.NewIdea(), [6]mgl32.Vec3{}, 0, 0.0}
 
 	vertexes := HexagonVertex(size)
 
-	base_hexagon := idea.NewIdea()
-	base_hexagon.Initialize(vertexes, program)
-	base_shell.tiles.AddIdea("core", base_hexagon)
+	base_shell.tile.Initialize(vertexes, program)
 
 	s := base_shell.base_vertexes[:]
 	copy(s, vertexes[:6])
@@ -44,7 +41,7 @@ func CreateBaseShell(size, angle float32, program uint32) Hexagonshell {
 
 func (shell *hexagonshell) Transport(v mgl32.Vec3) {
 	if shell.stage == 0 {
-		shell.tiles.Transport(v)
+		shell.tile.Transport(v)
 	} else {
 		for _, s := range shell.belonging_shells {
 			if s != nil {
@@ -55,11 +52,12 @@ func (shell *hexagonshell) Transport(v mgl32.Vec3) {
 	for i, vertex := range shell.base_vertexes {
 		shell.base_vertexes[i] = vertex.Add(v)
 	}
+	shell.tile.RebindVertexes(append(shell.base_vertexes[:], shell.base_vertexes[0]))
 }
 
 func (shell *hexagonshell) Rotate(start, end mgl32.Vec3, radian float32) {
 	if shell.stage == 0 {
-		shell.tiles.Rotate(start, end, radian)
+		shell.tile.Rotate(start, end, radian)
 	} else {
 		for _, s := range shell.belonging_shells {
 			if s != nil {
@@ -73,13 +71,18 @@ func (shell *hexagonshell) Rotate(start, end mgl32.Vec3, radian float32) {
 	for i, v := range shell.base_vertexes {
 		shell.base_vertexes[i] = roter.Rotate(v.Sub(start)).Add(start)
 	}
+	shell.tile.RebindVertexes(append(shell.base_vertexes[:], shell.base_vertexes[0]))
 }
 
 func (shell *hexagonshell) Copy() Hexagonshell {
 	new_shell := &hexagonshell{}
 
-	new_shell.belonging_shells = shell.belonging_shells
-	new_shell.tiles = shell.tiles.Copy()
+	for i, s := range shell.belonging_shells {
+		if s != nil {
+			new_shell.belonging_shells[i] = s.Copy()
+		}
+	}
+	new_shell.tile = shell.tile.Copy()
 	new_shell.base_vertexes = shell.base_vertexes
 	new_shell.stage = shell.stage
 	new_shell.angle = shell.angle
@@ -88,15 +91,13 @@ func (shell *hexagonshell) Copy() Hexagonshell {
 }
 
 func (shell *hexagonshell) Draw() error {
-	fmt.Println("=============")
-	fmt.Println(shell.tiles)
 	return shell.DrawStage(0)
 }
 
 func (shell *hexagonshell) DrawStage(stage uint) error {
 	var err error = nil
 	if stage == shell.stage {
-		err = shell.tiles.Draw()
+		err = shell.tile.Draw()
 		if err != nil {
 			return err
 		}
@@ -114,14 +115,9 @@ func (shell *hexagonshell) DrawStage(stage uint) error {
 	return err
 }
 
-func (shell *hexagonshell) Tiles() idea.IdeaGroup {
-	return shell.tiles
-}
-
 // TODO Rotateに関して
 func (shell *hexagonshell) GrowUp() {
 	fmt.Println("GrowUp start")
-	fmt.Println(shell.base_vertexes)
 	center_shell := shell.Copy()
 	shell.belonging_shells[0] = center_shell
 	for i, _ := range shell.base_vertexes {
@@ -135,11 +131,10 @@ func (shell *hexagonshell) GrowUp() {
 		new_shell.Transport(transport_vector)
 
 		shell.belonging_shells[i + 1] = new_shell
-		shell.tiles.AddIdeaGroup(fmt.Sprintf("tile%d", i), new_shell.Tiles())
 	}
 
-	fmt.Println(len(shell.belonging_shells))
 	shell.base_vertexes = nextBaseVertexes(shell.base_vertexes, shell.angle)
+	shell.tile.RebindVertexes(append(shell.base_vertexes[:], shell.base_vertexes[0]))
 
 	shell.stage++
 	fmt.Println("GrowUp end")

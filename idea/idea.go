@@ -1,8 +1,6 @@
 package idea
 
 import (
-	"fmt"
-
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 
@@ -99,7 +97,6 @@ func (idea_itself *idea) Draw() error {
 	gl.BindVertexArray(idea_itself.vao)
 
 	gl.LineWidth(1.5);
-	fmt.Println(idea_itself.vertexes)
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(len(idea_itself.vertexes)))
 	return nil
 }

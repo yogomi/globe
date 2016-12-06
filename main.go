@@ -80,9 +80,6 @@ func main() {
 
 	hexagons.GrowUp()
 
-	h2 := hexagons.Copy()
-	h2.Transport(mgl32.Vec3{5.0, 0.0, 0.0})
-
 	previous_time := glfw.GetTime()
 
 	for !window.ShouldClose() {
@@ -101,7 +98,6 @@ func main() {
 				float32(rotate_span / 100))
 
 		hexagons.Draw()
-		h2.Draw()
 
 		// Maintenance
 		window.SwapBuffers()
