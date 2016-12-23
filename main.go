@@ -13,8 +13,8 @@ import (
 	"./hexagonshell"
 )
 
-const window_width = 800
-const window_height = 600
+const window_width = 1080
+const window_height = 760
 
 var angle float64 = 0.0
 var rotate_span float64 = 0.0
@@ -57,11 +57,11 @@ func main() {
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0),
 									float32(window_width)/window_height,
 									0.1,
-									1000.0)
+									2000.0)
 	projectionUniform := gl.GetUniformLocation(program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 
-	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 200}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	camera := mgl32.LookAtV(mgl32.Vec3{0, 0, 1000}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 	cameraUniform := gl.GetUniformLocation(program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
 
@@ -82,6 +82,7 @@ func main() {
 	hexagons := hexagonshell.CreateBaseShell(1.0, 0.0, program)
 	globe_core = &hexagons
 
+	hexagons.GrowUp()
 	hexagons.GrowUp()
 
 	previous_time := glfw.GetTime()

@@ -23,7 +23,6 @@ func HexagonVertex(size float32) []mgl32.Vec3 {
 	f()
 	f()
 	f()
-	f()
 
 	return hexagon_vertex
 }
