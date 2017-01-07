@@ -16,6 +16,7 @@ type Idea interface {
 
 	SetPrimitiveType(primitive_type uint32)
 	AddVertexes(vertexes []mgl32.Vec3)
+	AddVertexesWithoutReplace(vertexes []mgl32.Vec3)
 	MergeIdea(o Idea)
 
 	Program() uint32
@@ -24,7 +25,7 @@ type Idea interface {
 	// vertexesをOpenGLのBufferへ登録し直す
 	rebindBuffer()
 	// vertexesの数が変わったらこっちを使わないとダメ。
-	replaceBuffer()
+	ReplaceBuffer()
 
 	vertexesFirsts() []int32
 	vertexesCounts() []int32
@@ -124,6 +125,12 @@ func (idea_itself *idea) SetPrimitiveType(primitive_type uint32) {
 }
 
 func (idea_itself *idea) AddVertexes(vertexes []mgl32.Vec3) {
+	idea_itself.AddVertexesWithoutReplace(vertexes)
+
+	idea_itself.ReplaceBuffer()
+}
+
+func (idea_itself *idea) AddVertexesWithoutReplace(vertexes []mgl32.Vec3) {
 	idea_itself.vertexes = append(idea_itself.vertexes, vertexes...)
 
 	last_address := idea_itself.vertexes_firsts[len(idea_itself.vertexes_firsts) - 1]
@@ -131,8 +138,6 @@ func (idea_itself *idea) AddVertexes(vertexes []mgl32.Vec3) {
 					last_address + int32(len(vertexes)))
 
 	idea_itself.vertexes_counts = append(idea_itself.vertexes_counts, int32(len(vertexes)))
-
-	idea_itself.replaceBuffer()
 }
 
 // 渡されたIdeaとvertexesとかfirsts,countsをくっつける。
@@ -149,7 +154,7 @@ func (idea_itself *idea) MergeIdea(o Idea) {
 	idea_itself.vertexes_firsts = append(idea_itself.vertexesFirsts(), firsts...)
 	idea_itself.vertexes_counts = append(idea_itself.vertexesCounts(), o.vertexesCounts()...)
 
-	idea_itself.replaceBuffer()
+	idea_itself.ReplaceBuffer()
 }
 
 func (idea_itself *idea) Program() uint32 {
@@ -169,7 +174,7 @@ func (idea_itself *idea) rebindBuffer() {
 						gl.Ptr(float_array))
 }
 
-func (idea_itself *idea) replaceBuffer() {
+func (idea_itself *idea) ReplaceBuffer() {
 	gl.BindVertexArray(idea_itself.vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, idea_itself.vbo)
 
